@@ -1669,11 +1669,11 @@
               </select>
             </div>
             <div class="field">
-              <label for="date">日期</label>
+              <label for="date">期望到店日期</label>
               <input id="date" name="date" type="date" required>
             </div>
             <div class="field">
-              <label for="time">时间</label>
+              <label for="time">期望到店时间</label>
               <select id="time" name="time" required>
                 <option value="">请选择</option>
                 <option>10:30</option>
@@ -1823,6 +1823,7 @@
     });
 
     const dateInput = document.querySelector("#date");
+    const timeInput = document.querySelector("#time");
     const today = new Date();
     const localDate = new Date(today.getTime() - today.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
     dateInput.min = localDate;
@@ -1830,13 +1831,40 @@
     const bookingForm = document.querySelector("#bookingForm");
     const formStatus = document.querySelector("#formStatus");
 
+    const updateArrivalPreview = () => {
+      const date = dateInput.value;
+      const time = timeInput.value;
+
+      if (date && time) {
+        formStatus.textContent = `已选择期望到店时间：${date} ${time}`;
+        return;
+      }
+
+      if (date) {
+        formStatus.textContent = "已选择到店日期，请继续选择期望到店时间。";
+        return;
+      }
+
+      if (time) {
+        formStatus.textContent = "已选择到店时段，请继续选择期望到店日期。";
+        return;
+      }
+
+      formStatus.textContent = "请选择期望到店日期和时间。";
+    };
+
+    dateInput.addEventListener("change", updateArrivalPreview);
+    timeInput.addEventListener("change", updateArrivalPreview);
+    updateArrivalPreview();
+
     bookingForm.addEventListener("submit", (event) => {
       event.preventDefault();
       const data = new FormData(bookingForm);
       const name = data.get("parentName") || "您";
       const service = data.get("service") || "护理";
+      const date = data.get("date") || "预约日期";
       const time = data.get("time") || "预约时段";
-      formStatus.textContent = `${name}，${service} ${time} 的预约信息已记录，门店会尽快与您确认。`;
+      formStatus.textContent = `${name}，${service}的期望到店时间 ${date} ${time} 已记录，门店会尽快与您确认。`;
       bookingForm.reset();
       dateInput.min = localDate;
     });

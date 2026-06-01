@@ -164,14 +164,41 @@ function initBookingForm(
   ) => void
 ) {
   const dateInput = document.querySelector<HTMLInputElement>("#date");
+  const timeInput = document.querySelector<HTMLSelectElement>("#time");
   const bookingForm = document.querySelector<HTMLFormElement>("#bookingForm");
   const formStatus = document.querySelector<HTMLElement>("#formStatus");
 
-  if (!dateInput || !bookingForm || !formStatus) return;
+  if (!dateInput || !timeInput || !bookingForm || !formStatus) return;
 
   const today = new Date();
   const localDate = new Date(today.getTime() - today.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
   dateInput.min = localDate;
+
+  const updateArrivalPreview = () => {
+    const date = dateInput.value;
+    const time = timeInput.value;
+
+    if (date && time) {
+      formStatus.textContent = `已选择期望到店时间：${date} ${time}`;
+      return;
+    }
+
+    if (date) {
+      formStatus.textContent = "已选择到店日期，请继续选择期望到店时间。";
+      return;
+    }
+
+    if (time) {
+      formStatus.textContent = "已选择到店时段，请继续选择期望到店日期。";
+      return;
+    }
+
+    formStatus.textContent = "请选择期望到店日期和时间。";
+  };
+
+  onElement(dateInput, "change", updateArrivalPreview);
+  onElement(timeInput, "change", updateArrivalPreview);
+  updateArrivalPreview();
 
   onElement(bookingForm, "submit", (event) => {
     event.preventDefault();
@@ -179,9 +206,10 @@ function initBookingForm(
     const data = new FormData(bookingForm);
     const name = data.get("parentName") || "您";
     const service = data.get("service") || "护理";
+    const date = data.get("date") || "预约日期";
     const time = data.get("time") || "预约时段";
 
-    formStatus.textContent = `${name}，${service} ${time} 的预约信息已记录，门店会尽快与您确认。`;
+    formStatus.textContent = `${name}，${service}的期望到店时间 ${date} ${time} 已记录，门店会尽快与您确认。`;
     bookingForm.reset();
     dateInput.min = localDate;
   });
